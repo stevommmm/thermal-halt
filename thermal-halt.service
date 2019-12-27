@@ -1,0 +1,15 @@
+[Unit]
+Description=Halt system when temp breaches thresholds
+ConditionPathIsDirectory=/sys/class/thermal/thermal_zone0/
+
+[Service]
+Type=exec
+Environment=TEMP_OFF=70
+Environment=CHECK_COUNT=5
+Environment=CHECK_WAIT=20
+ExecStart=/usr/local/bin/thermal-halt
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
