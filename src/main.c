@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/reboot.h>
 
 
@@ -25,27 +26,29 @@ void do_halt() {
     reboot(RB_HALT_SYSTEM);
 }
 
-int env_int(const char *name, int defval) {
+long int env_lint(const char *name, long int defval) {
+    long val;
+    char *end;
     char *s = getenv(name);
     if (s == NULL)
         return defval;
-    return atoi(s);
-}
 
-double env_double(const char *name, double defval) {
-    char *s = getenv(name);
-    if (s == NULL)
-        return defval;
-    return atof(s);
+    errno = 0;
+    val = strtol(s, &end, 10);
+    if (errno == ERANGE || end == s ) {
+        printf("Invalid number given for %s (%s)", name, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return val;
 }
 
 int main(int argc, char *argv[]) {
     unsigned int counter = 0;
     double temp;
 
-    double env_temp_off = env_double("TEMP_OFF", 70);
-    int env_check_count = env_int("CHECK_COUNT", 5);
-    int env_check_wait = env_int("CHECK_WAIT", 20);
+    double env_temp_off = (double) env_lint("TEMP_OFF", 70);
+    int env_check_count = (int) env_lint("CHECK_COUNT", 5);
+    int env_check_wait = (int) env_lint("CHECK_WAIT", 20);
 
     chdir("/");
 
